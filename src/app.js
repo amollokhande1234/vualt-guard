@@ -3,6 +3,7 @@ const authRouter = require('./routes/auth.routes')
 const fileRoutes = require("./routes/file.routes");
 const valueRoutes = require("./routes/value.routes");
 const otpRoutes = require("./routes/otp.routes");
+const userRoutes = require("./routes/user.routes");
 
 
 const app = express();
@@ -20,5 +21,10 @@ app.use("/api/files", fileRoutes);
 app.use("/api/vault", valueRoutes);
 
 app.use("/api/otp", otpRoutes);
+
+app.use(
+    "/api/users",
+    userRoutes
+);
 
 module.exports = app;
