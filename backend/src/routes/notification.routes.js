@@ -6,7 +6,7 @@ const {
     markAsRead,
     markAllAsRead,
     deleteNotification
-} = require("../controllers/notification.controller");
+} = require("../controllers/notication.controller");
 
 const requireAuth = require("../middleware/requireAuth"); // adjust path if needed
 
