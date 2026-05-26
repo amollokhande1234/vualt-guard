@@ -1,5 +1,6 @@
 const Vault = require("../models/valut.model");
 const cloudinary = require("../config/cloudinary");
+const { encrypt, decrypt } = require("../config/encryption");
 
 
 // CREATE VAULT
@@ -201,22 +202,33 @@ const createVault = async (req, res) => {
                     }
                 );
 
+            // uploadedFiles.push({
+
+            //     originalName:
+            //         file.originalname,
+
+            //     fileUrl:
+            //         result.secure_url,
+
+            //     publicId:
+            //         result.public_id,
+
+            //     type:
+            //         file.mimetype,
+
+            //     size:
+            //         file.size,
+            // });
+
             uploadedFiles.push({
+                originalName: file.originalname,
 
-                originalName:
-                    file.originalname,
+                fileUrl: encrypt(result.secure_url), // 🔐 ENCRYPTED
 
-                fileUrl:
-                    result.secure_url,
+                publicId: encrypt(result.public_id), // 🔐 ENCRYPTED
 
-                publicId:
-                    result.public_id,
-
-                type:
-                    file.mimetype,
-
-                size:
-                    file.size,
+                type: file.mimetype,
+                size: file.size,
             });
         }
 
@@ -323,6 +335,7 @@ const getMyVaults = async (req, res) => {
     }
 };
 
+
 // GET SINGLE VAULT
 const getSingleVault = async (req, res) => {
     try {
@@ -335,25 +348,38 @@ const getSingleVault = async (req, res) => {
             });
         }
 
-        // CHECK UNLOCK DATE
         const currentDate = new Date();
 
-        if (currentDate < vault.unlockDate) {
+        // 🔒 CHECK IF LOCKED FIRST
+        if (currentDate < vault.unlockDate || vault.status === "locked") {
             return res.status(403).json({
                 success: false,
                 message: "Vault is still locked",
             });
         }
 
+        // 🔓 MARK AS UNLOCKED (safe update)
         vault.isUnlocked = true;
         vault.status = "unlocked";
-
         await vault.save();
+
+        // 🔓 DECRYPT ONLY FOR RESPONSE
+        const decryptedFiles = vault.files.map((file) => ({
+            originalName: file.originalName,
+            fileUrl: decrypt(file.fileUrl),
+            publicId: decrypt(file.publicId),
+            type: file.type,
+            size: file.size,
+        }));
 
         return res.status(200).json({
             success: true,
-            data: vault,
+            data: {
+                ...vault.toObject(),
+                files: decryptedFiles,
+            },
         });
+
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -361,6 +387,7 @@ const getSingleVault = async (req, res) => {
         });
     }
 };
+
 
 // UPDATE VAULT
 const updateVault = async (req, res) => {

@@ -6,20 +6,22 @@ const {
     markAsRead,
     markAllAsRead,
     deleteNotification
-} = require("../controllers/notication.controller");
+} = require("../controllers/notification.controller");
 
-const requireAuth = require("../middleware/requireAuth"); // adjust path if needed
+const {
+    verifyToken
+} = require("../middlewares/auth.middleware");
 
 // GET ALL NOTIFICATIONS
-router.get("/", requireAuth, getMyNotifications);
+router.get("/", verifyToken, getMyNotifications);
 
 // MARK SINGLE NOTIFICATION AS READ
-router.patch("/:id/read", requireAuth, markAsRead);
+router.patch("/:id/read", verifyToken, markAsRead);
 
 // MARK ALL AS READ
-router.patch("/read-all", requireAuth, markAllAsRead);
+router.patch("/read-all", verifyToken, markAllAsRead);
 
 // DELETE NOTIFICATION
-router.delete("/:id", requireAuth, deleteNotification);
+router.delete("/:id", verifyToken, deleteNotification);
 
 module.exports = router;
